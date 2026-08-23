@@ -165,12 +165,117 @@ textarea:focus-visible {
   position: absolute;
   top: 45px;
   left: -14px;
-  width: 310px;
-  padding: 10px;
+  width: min(430px, calc(100vw - 28px));
+  padding: 10px 6px 8px 10px;
   border: 1px solid #344153;
   border-radius: 10px;
   background: #151e2b;
   box-shadow: 0 24px 50px rgba(0, 0, 0, 0.42);
+}
+
+.menu-heading {
+  height: 30px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-right: 8px;
+}
+
+.menu-heading > span {
+  color: #667386;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.chapter-menu-scroll {
+  max-height: min(650px, calc(100dvh - 120px));
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-color: #445267 transparent;
+  scrollbar-width: thin;
+}
+
+.menu-chapter {
+  padding: 8px 5px 10px;
+  border-top: 1px solid #273445;
+}
+
+.menu-chapter:first-child {
+  border-top: 0;
+}
+
+.menu-chapter-heading {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 8px;
+  align-items: center;
+  padding: 1px 7px 7px;
+}
+
+.menu-chapter-heading span {
+  color: var(--accent);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+}
+
+.menu-chapter-heading strong {
+  color: #d8dee7;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.menu-sections {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px;
+}
+
+.menu-section {
+  position: relative;
+  min-width: 0;
+  display: block;
+  padding: 7px 20px 7px 8px;
+  border-radius: 5px;
+  color: #a8b2c0;
+  text-decoration: none;
+}
+
+.menu-section:hover {
+  background: #1d2938;
+  color: #f0f3f7;
+}
+
+.menu-section.active {
+  background: #223243;
+  color: #f4f7fa;
+}
+
+.menu-section > span,
+.menu-section small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-section > span {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.menu-section small {
+  margin-top: 2px;
+  color: #68778b;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 8px;
+}
+
+.menu-section .active-dot {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
 }
 
 .menu-label {
@@ -678,6 +783,18 @@ textarea:focus-visible {
   color: #6ca9ea;
 }
 
+.file-type-icon.html {
+  background: rgba(255, 122, 99, 0.12);
+  color: #ff8b76;
+  font-size: 6px;
+}
+
+.file-type-icon.json {
+  background: rgba(100, 216, 203, 0.12);
+  color: var(--accent);
+  font-size: 6px;
+}
+
 .edited-indicator {
   width: 6px;
   height: 6px;
@@ -939,6 +1056,44 @@ textarea:focus-visible {
 body.is-resizing,
 body.is-resizing * { user-select: none !important; }
 
+.section-state {
+  min-height: 100dvh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 14px;
+  background: var(--ink-950);
+  color: #aeb8c6;
+}
+
+.section-state p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.section-loader {
+  width: 26px;
+  height: 26px;
+  border: 2px solid #344255;
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: section-spin 700ms linear infinite;
+}
+
+.section-error code {
+  max-width: min(620px, calc(100vw - 40px));
+  padding: 10px 13px;
+  border-radius: 6px;
+  background: #241b20;
+  color: #ff9b88;
+  font-size: 11px;
+  white-space: normal;
+}
+
+@keyframes section-spin {
+  to { transform: rotate(360deg); }
+}
+
 @media (max-width: 1120px) {
   .workspace-panel { grid-template-columns: 170px minmax(250px, 1fr); }
   .lesson-content { grid-template-columns: minmax(230px, 0.65fr) minmax(500px, 1.35fr); gap: 38px; }
@@ -973,6 +1128,8 @@ body.is-resizing * { user-select: none !important; }
   .file-explorer { display: none; }
   .reset-button { width: 28px; padding: 0; justify-content: center; font-size: 0; }
   .lesson-panel { padding: 27px 19px 34px; }
+  .chapter-menu { left: -105px; }
+  .menu-sections { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {

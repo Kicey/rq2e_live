@@ -59,7 +59,7 @@ export function TutorialWorkspace({ section }: { section: TutorialSection }) {
   return (
     <SandpackProvider
       key={section.slug}
-      template="react"
+      template={section.template}
       theme="dark"
       files={section.files}
       customSetup={{ entry: section.entryFile, dependencies: section.dependencies }}

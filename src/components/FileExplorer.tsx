@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { useSandpack } from "@codesandbox/sandpack-react";
 import type { TutorialSection } from "../content/types";
 import { FolderIcon, TreeChevron } from "./icons";
@@ -8,9 +8,32 @@ interface FileExplorerProps {
 }
 
 function fileMeta(path: string) {
-  return path.endsWith(".css")
-    ? { label: "#", className: "css" }
-    : { label: "JS", className: "javascript" };
+  if (path.endsWith(".css")) return { label: "#", className: "css" };
+  if (path.endsWith(".html")) return { label: "<>", className: "html" };
+  if (path.endsWith(".json")) return { label: "{}", className: "json" };
+  return { label: "JS", className: "javascript" };
+}
+
+interface TreeNode {
+  files: string[];
+  folders: Map<string, TreeNode>;
+}
+
+function buildTree(paths: string[]): TreeNode {
+  const root: TreeNode = { files: [], folders: new Map() };
+  for (const path of paths) {
+    const segments = path.replace(/^\//, "").split("/");
+    const filename = segments.pop();
+    let node = root;
+    for (const segment of segments) {
+      if (!node.folders.has(segment)) {
+        node.folders.set(segment, { files: [], folders: new Map() });
+      }
+      node = node.folders.get(segment)!;
+    }
+    if (filename) node.files.push(path);
+  }
+  return root;
 }
 
 function FolderRow({ name, depth }: { name: string; depth: number }) {
@@ -25,8 +48,7 @@ function FolderRow({ name, depth }: { name: string; depth: number }) {
 
 export function FileExplorer({ section }: FileExplorerProps) {
   const { sandpack } = useSandpack();
-  const rootFiles = section.visibleFiles.filter((path) => path.split("/").length === 3);
-  const folders = ["step", "task"];
+  const tree = buildTree(section.visibleFiles);
 
   const renderFile = (path: string, depth: number) => {
     const meta = fileMeta(path);
@@ -50,23 +72,28 @@ export function FileExplorer({ section }: FileExplorerProps) {
     );
   };
 
+  const renderTree = (node: TreeNode, depth: number): ReactNode => (
+    <>
+      {node.files.sort().map((path) => renderFile(path, depth))}
+      {[...node.folders.entries()]
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([name, child]) => (
+          <div className="tree-group" key={`${depth}-${name}`}>
+            <FolderRow name={name} depth={depth} />
+            {renderTree(child, depth + 1)}
+          </div>
+        ))}
+    </>
+  );
+
   return (
     <aside className="file-explorer" aria-labelledby="filesHeading">
       <div className="explorer-heading"><h2 id="filesHeading">Explorer</h2></div>
       <div className="file-tree">
-        <FolderRow name="rq13-steps" depth={0} />
-        <FolderRow name="src" depth={1} />
-        {rootFiles.map((path) => renderFile(path, 2))}
-        {folders.map((folder) => (
-          <div className="tree-group" key={folder}>
-            <FolderRow name={folder} depth={2} />
-            {section.visibleFiles
-              .filter((path) => path.startsWith(`/src/${folder}/`))
-              .map((path) => renderFile(path, 3))}
-          </div>
-        ))}
+        <FolderRow name={section.slug} depth={0} />
+        {renderTree(tree, 1)}
       </div>
-      <div className="source-path"><span>Source</span><code>rq2e/ch13/rq13-steps</code></div>
+      <div className="source-path"><span>Source</span><code>{section.sourcePath}</code></div>
     </aside>
   );
 }

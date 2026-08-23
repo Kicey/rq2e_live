@@ -7,9 +7,10 @@ interface EditorPaneProps {
 }
 
 function fileMeta(path: string) {
-  return path.endsWith(".css")
-    ? { label: "#", className: "css", language: "CSS" }
-    : { label: "JS", className: "javascript", language: "JavaScript React" };
+  if (path.endsWith(".css")) return { label: "#", className: "css", language: "CSS" };
+  if (path.endsWith(".html")) return { label: "<>", className: "html", language: "HTML" };
+  if (path.endsWith(".json")) return { label: "{}", className: "json", language: "JSON" };
+  return { label: "JS", className: "javascript", language: "JavaScript React" };
 }
 
 export function EditorPane({ section }: EditorPaneProps) {

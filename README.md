@@ -1,6 +1,6 @@
 # React Quickly Live
 
-An interactive, browser-only tutorial companion for the examples in the `rq2e` submodule. The current archetype presents Chapter 13's `rq13-steps` project in a resizable three-pane workspace:
+An interactive, browser-only tutorial companion for all 91 examples in the `rq2e` submodule. Every section uses the same resizable three-pane workspace:
 
 - a sandboxed React preview;
 - a multi-file explorer and CodeMirror editor powered by Sandpack;
@@ -8,9 +8,9 @@ An interactive, browser-only tutorial companion for the examples in the `rq2e` s
 
 ## Architecture
 
-The tutorial shell is a React and TypeScript application built by Vite. Sandpack owns the editable virtual filesystem, compiles the selected example in the browser, and runs it in an isolated iframe. The source examples remain in the `rq2e` Git submodule and are imported as raw files during the Vite build; no source is duplicated in the tutorial application.
+The tutorial shell is a React and TypeScript application built by Vite. Sandpack owns the editable virtual filesystem, compiles the selected example in the browser, and runs it in an isolated iframe. The source examples remain in the `rq2e` Git submodule; no source is duplicated in the tutorial application.
 
-Lesson metadata is defined in `src/content`. Each section declares its route, entry file, initially selected file, dependencies, source URL, and Markdown lesson. The UI consumes the shared `TutorialSection` type, allowing additional chapters to use the same preview, explorer, editor, and lesson components.
+The content registry discovers chapter and example folders at build time. Source files are emitted as lazy chunks and fetched only when their section is opened. A shared chapter profile supplies the learning context and experiment guidance, while a section can override that generated lesson with authored Markdown when it needs more detail. Public SVG and PNG assets are embedded into the selected sandbox so the previews remain compatible with static GitHub Pages hosting.
 
 No production backend is required. Node.js is used only for local development, tests, and the static GitHub Pages build.
 
@@ -35,15 +35,16 @@ npm run build
 npm run test:e2e
 ```
 
-The Playwright test verifies the complete browser path by adding a task through the Sandpack preview.
+The Playwright suite verifies the catalog, standalone HTML, embedded PNG/SVG assets, insecure LAN origins, and the complete add-task interaction through the Sandpack preview.
 
 ## Add another section
 
-1. Add a typed section module and Markdown lesson under `src/content/chXX`.
-2. Import the required example files with a narrow `import.meta.glob` expression.
-3. Register the section in `src/content/chapters.ts`.
+1. Add the example folder to the matching `rq2e/chXX` directory in the submodule.
+2. If it follows the existing `src`/`public` structure, the catalog discovers it automatically.
+3. Add an entry to `sectionOverrides` in `src/content/chapters.ts` only when it needs custom metadata.
+4. Import an authored Markdown lesson and select it in `loadSection` only when the generated chapter lesson is not sufficient.
 
-Keeping each glob narrow ensures the production bundle contains only examples that are actually part of the tutorial.
+The source globs require examples to be one directory below their chapter. This keeps accidental files such as nested `node_modules` out of the tutorial build.
 
 ## Deploy
 
