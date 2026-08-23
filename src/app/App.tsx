@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { Navigate, Route, Routes, useParams } from "react-router-dom";
-import { getSection, loadSection } from "../content/chapters";
+import { chapters, getSection, loadSection } from "../content/chapters";
 import type { TutorialSection } from "../content/types";
 import { TutorialWorkspace } from "../components/TutorialWorkspace";
 
-const defaultSectionPath = "/chapter/13/rq13-steps";
+const firstSection = chapters[0]?.sections[0];
+const defaultSectionPath = firstSection
+  ? `/chapter/${firstSection.chapter}/${firstSection.slug}`
+  : "/chapter/1/hello-world";
 
 function TutorialRoute() {
   const { chapter = "", slug = "" } = useParams();

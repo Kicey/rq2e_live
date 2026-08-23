@@ -40,6 +40,15 @@ test("loads the complete chapter and section catalog", async ({ page }) => {
   await expect(page.locator(".menu-section")).toHaveCount(91);
 });
 
+test("uses the first section as the default route", async ({ page }) => {
+  await page.goto("/");
+  await expect(page).toHaveURL(/#\/chapter\/1\/hello-world$/);
+  await expect(page.getByText("hello-world", { exact: true }).first()).toBeVisible();
+
+  await page.goto("/#/chapter/99/missing-section");
+  await expect(page).toHaveURL(/#\/chapter\/1\/hello-world$/);
+});
+
 test("collapses and restores the code Explorer", async ({ page }) => {
   await page.goto("/#/chapter/13/rq13-steps");
 

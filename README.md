@@ -24,7 +24,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:4173/#/chapter/13/rq13-steps`.
+Open `http://localhost:4173/` to start with Chapter 1's first section.
 
 ## Verification
 
