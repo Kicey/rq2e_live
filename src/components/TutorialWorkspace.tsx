@@ -1,9 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { SandpackProvider, useSandpack } from "@codesandbox/sandpack-react";
 import type { TutorialSection } from "../content/types";
 import { useResizablePanes } from "../hooks/useResizablePanes";
 import { LessonPane } from "./LessonPane";
 import { PreviewPane } from "./PreviewPane";
+import { SectionChooser } from "./SectionChooser";
 import { TopBar } from "./TopBar";
 import { WorkspacePane } from "./WorkspacePane";
 
@@ -11,6 +12,23 @@ function TutorialLayout({ section }: { section: TutorialSection }) {
   const { startResize } = useResizablePanes("tutorialShell");
   const { sandpack } = useSandpack();
   const initialRunStarted = useRef(false);
+  const [sectionChooserOpen, setSectionChooserOpen] = useState(
+    () => window.matchMedia("(min-width: 961px)").matches,
+  );
+  const closeSectionChooser = useCallback(() => setSectionChooserOpen(false), []);
+  const toggleSectionChooser = useCallback(
+    () => setSectionChooserOpen((open) => !open),
+    [],
+  );
+
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 961px)");
+    const syncChooserToLayout = (event: MediaQueryListEvent) => {
+      setSectionChooserOpen(event.matches);
+    };
+    desktop.addEventListener("change", syncChooserToLayout);
+    return () => desktop.removeEventListener("change", syncChooserToLayout);
+  }, []);
 
   useEffect(() => {
     if (initialRunStarted.current) return;
@@ -31,8 +49,20 @@ function TutorialLayout({ section }: { section: TutorialSection }) {
 
   return (
     <>
-      <TopBar section={section} />
-      <main className="tutorial-shell" id="tutorialShell">
+      <TopBar
+        section={section}
+        sectionChooserOpen={sectionChooserOpen}
+        onToggleSectionChooser={toggleSectionChooser}
+      />
+      <main
+        className={`tutorial-shell ${sectionChooserOpen ? "" : "sections-collapsed"}`}
+        id="tutorialShell"
+      >
+        <SectionChooser
+          section={section}
+          open={sectionChooserOpen}
+          onClose={closeSectionChooser}
+        />
         <PreviewPane />
         <div
           className="resize-handle resize-vertical"

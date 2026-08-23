@@ -14,7 +14,13 @@ export function useResizablePanes(shellId: string) {
     const move = (pointerEvent: PointerEvent) => {
       const bounds = shell.getBoundingClientRect();
       if (orientation === "vertical") {
-        const width = Math.min(Math.max(pointerEvent.clientX - bounds.left, 390), bounds.width - 425);
+        const preview = shell.querySelector<HTMLElement>(".preview-panel");
+        const previewLeft = preview?.getBoundingClientRect().left ?? bounds.left;
+        const availableWidth = bounds.right - previewLeft;
+        const width = Math.min(
+          Math.max(pointerEvent.clientX - previewLeft, 360),
+          availableWidth - 370,
+        );
         document.documentElement.style.setProperty("--preview-width", `${width}px`);
       } else {
         const height = Math.min(Math.max(bounds.bottom - pointerEvent.clientY, 190), bounds.height - 305);

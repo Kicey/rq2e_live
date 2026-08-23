@@ -33,11 +33,41 @@ test("initializes the preview when SubtleCrypto is unavailable", async ({ page }
 
 test("loads the complete chapter and section catalog", async ({ page }) => {
   await page.goto("/#/chapter/13/rq13-steps");
-  await page.getByRole("button", { name: "Chapter 13" }).click();
 
-  await expect(page.getByText("91 sections", { exact: true })).toBeVisible();
-  await expect(page.locator(".menu-chapter")).toHaveCount(13);
-  await expect(page.locator(".menu-section")).toHaveCount(91);
+  const chooser = page.getByRole("navigation", { name: "Tutorial contents" });
+  await expect(chooser).toBeVisible();
+  await expect(chooser.getByText("91 sections", { exact: true })).toBeVisible();
+  await expect(chooser.locator(".chooser-chapter")).toHaveCount(13);
+  await expect(chooser.locator(".chooser-section")).toHaveCount(91);
+});
+
+test("hides and restores the desktop section chooser", async ({ page }) => {
+  await page.goto("/#/chapter/13/rq13-steps");
+
+  const chooser = page.getByRole("navigation", { name: "Tutorial contents" });
+  await expect(chooser).toBeVisible();
+  await chooser.getByRole("button", { name: "Hide tutorial contents" }).click();
+  await expect(chooser).toBeHidden();
+  await expect(page.locator(".tutorial-shell")).toHaveClass(/sections-collapsed/);
+
+  await page.getByRole("button", { name: "Show tutorial contents" }).click();
+  await expect(chooser).toBeVisible();
+});
+
+test("opens the section chooser as a drawer on small screens", async ({ page }) => {
+  await page.setViewportSize({ width: 560, height: 760 });
+  await page.goto("/#/chapter/13/rq13-steps");
+
+  const chooser = page.getByRole("navigation", { name: "Tutorial contents" });
+  await expect(chooser).not.toBeInViewport();
+  await page.getByRole("button", { name: "Show tutorial contents" }).click();
+  await expect(chooser).toBeInViewport();
+  await expect(chooser.getByRole("link", { name: /Adding steps to the task manager/ })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await chooser.getByRole("button", { name: "Hide tutorial contents" }).click();
+  await expect(chooser).not.toBeInViewport();
 });
 
 test("uses the first section as the default route", async ({ page }) => {

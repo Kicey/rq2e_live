@@ -1,92 +1,45 @@
-import { type CSSProperties, useEffect, useRef, useState } from "react";
-import { chapters, sections } from "../content/chapters";
+import { type CSSProperties } from "react";
+import { sections } from "../content/chapters";
 import type { TutorialSection } from "../content/types";
-import { ChevronDown, GithubIcon, ReactMark } from "./icons";
+import { GithubIcon, ReactMark, SidebarIcon } from "./icons";
 
 interface TopBarProps {
   section: TutorialSection;
+  sectionChooserOpen: boolean;
+  onToggleSectionChooser: () => void;
 }
 
-export function TopBar({ section }: TopBarProps) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLElement>(null);
-  const activeSectionRef = useRef<HTMLAnchorElement>(null);
+export function TopBar({ section, sectionChooserOpen, onToggleSectionChooser }: TopBarProps) {
   const activeIndex = sections.findIndex(
     (item) => item.chapter === section.chapter && item.slug === section.slug,
   );
   const progress = `${((activeIndex + 1) / sections.length) * 100}%`;
 
-  useEffect(() => {
-    const closeMenu = (event: MouseEvent) => {
-      if (!menuRef.current?.contains(event.target as Node)) setMenuOpen(false);
-    };
-    document.addEventListener("pointerdown", closeMenu);
-    return () => document.removeEventListener("pointerdown", closeMenu);
-  }, []);
-
-  useEffect(() => {
-    if (menuOpen) activeSectionRef.current?.scrollIntoView({ block: "nearest" });
-  }, [menuOpen]);
-
   return (
     <header className="topbar">
-      <a className="brand" href="#/chapter/1/hello-world" aria-label="React Quickly Live home">
-        <span className="brand-mark"><ReactMark /></span>
-        <span className="brand-title">React Quickly</span>
-        <span className="brand-live">live</span>
-      </a>
-
-      <nav className="lesson-crumbs" aria-label="Current lesson" ref={menuRef}>
+      <div className="brand-group">
         <button
-          className="chapter-button"
+          className="sections-toggle"
           type="button"
-          aria-expanded={menuOpen}
-          aria-controls="chapterMenu"
-          onClick={() => setMenuOpen((open) => !open)}
+          aria-label={sectionChooserOpen ? "Hide tutorial contents" : "Show tutorial contents"}
+          aria-expanded={sectionChooserOpen}
+          aria-controls="sectionChooser"
+          onClick={onToggleSectionChooser}
         >
-          <span>Chapter {section.chapter}</span>
-          <ChevronDown />
+          <SidebarIcon />
         </button>
+        <a className="brand" href="#/chapter/1/hello-world" aria-label="React Quickly Live home">
+          <span className="brand-mark"><ReactMark /></span>
+          <span className="brand-title">React Quickly</span>
+          <span className="brand-live">live</span>
+        </a>
+      </div>
+
+      <div className="lesson-crumbs" aria-label="Current lesson">
+        <span className="chapter-label">Chapter {section.chapter}</span>
         <span className="crumb-separator" aria-hidden="true">/</span>
         <span className="section-title">{section.title}</span>
-
-        {!menuOpen ? null : (
-          <div className="chapter-menu" id="chapterMenu">
-            <div className="menu-heading">
-              <p className="menu-label">Tutorial contents</p>
-              <span>{sections.length} sections</span>
-            </div>
-            <div className="chapter-menu-scroll">
-              {chapters.map((chapter) => (
-                <section className="menu-chapter" key={chapter.number}>
-                  <header className="menu-chapter-heading">
-                    <span>{String(chapter.number).padStart(2, "0")}</span>
-                    <strong>{chapter.title}</strong>
-                  </header>
-                  <div className="menu-sections">
-                    {chapter.sections.map((item) => {
-                      const active = item.chapter === section.chapter && item.slug === section.slug;
-                      return (
-                        <a
-                          className={`menu-section ${active ? "active" : ""}`}
-                          href={`#/chapter/${item.chapter}/${item.slug}`}
-                          key={item.slug}
-                          onClick={() => setMenuOpen(false)}
-                          ref={active ? activeSectionRef : undefined}
-                          aria-current={active ? "page" : undefined}
-                        >
-                          <span>{item.title}</span><small>{item.slug}</small>
-                          {active ? <i className="active-dot" aria-hidden="true" /> : null}
-                        </a>
-                      );
-                    })}
-                  </div>
-                </section>
-              ))}
-            </div>
-          </div>
-        )}
-      </nav>
+      </div>
 
       <div className="header-actions">
         <span className="progress-copy">Example <strong>{section.slug}</strong></span>
