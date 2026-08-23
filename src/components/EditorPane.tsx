@@ -1,9 +1,11 @@
 import { SandpackCodeEditor, useSandpack } from "@codesandbox/sandpack-react";
 import type { TutorialSection } from "../content/types";
-import { PlayIcon, RefreshIcon } from "./icons";
+import { PlayIcon, RefreshIcon, SidebarIcon } from "./icons";
 
 interface EditorPaneProps {
   section: TutorialSection;
+  explorerOpen: boolean;
+  onExpandExplorer: () => void;
 }
 
 function fileMeta(path: string) {
@@ -13,7 +15,7 @@ function fileMeta(path: string) {
   return { label: "JS", className: "javascript", language: "JavaScript React" };
 }
 
-export function EditorPane({ section }: EditorPaneProps) {
+export function EditorPane({ section, explorerOpen, onExpandExplorer }: EditorPaneProps) {
   const { sandpack } = useSandpack();
   const activeFile = sandpack.activeFile;
   const meta = fileMeta(activeFile);
@@ -27,11 +29,24 @@ export function EditorPane({ section }: EditorPaneProps) {
   return (
     <div className="editor-pane">
       <div className="editor-tabs" role="tablist" aria-label="Open files">
-        <button className="editor-tab active" type="button" role="tab" aria-selected="true">
-          <span className={`file-type-icon ${meta.className}`}>{meta.label}</span>
-          <span>{activeFile.split("/").at(-1)}</span>
-          <span className={`tab-change ${changed ? "visible" : ""}`} aria-hidden="true">●</span>
-        </button>
+        <div className="editor-tab-group">
+          {!explorerOpen ? (
+            <button
+              className="explorer-toggle editor-explorer-toggle"
+              type="button"
+              aria-label="Expand Explorer"
+              title="Expand Explorer"
+              onClick={onExpandExplorer}
+            >
+              <SidebarIcon />
+            </button>
+          ) : null}
+          <button className="editor-tab active" type="button" role="tab" aria-selected="true">
+            <span className={`file-type-icon ${meta.className}`}>{meta.label}</span>
+            <span>{activeFile.split("/").at(-1)}</span>
+            <span className={`tab-change ${changed ? "visible" : ""}`} aria-hidden="true">●</span>
+          </button>
+        </div>
         <div className="editor-toolbar">
           <button className="reset-button" type="button" onClick={resetActiveFile}>
             <RefreshIcon /> Reset

@@ -40,6 +40,49 @@ test("loads the complete chapter and section catalog", async ({ page }) => {
   await expect(page.locator(".menu-section")).toHaveCount(91);
 });
 
+test("collapses and restores the code Explorer", async ({ page }) => {
+  await page.goto("/#/chapter/13/rq13-steps");
+
+  await expect(page.getByRole("complementary", { name: "Explorer" })).toBeVisible();
+  await page.getByRole("button", { name: "Collapse Explorer" }).click();
+  await expect(page.getByRole("complementary", { name: "Explorer" })).toHaveCount(0);
+  await expect(page.locator(".workspace-panel")).toHaveClass(/explorer-collapsed/);
+
+  await page.getByRole("button", { name: "Expand Explorer" }).click();
+  await expect(page.getByRole("complementary", { name: "Explorer" })).toBeVisible();
+});
+
+test("collapses and restores folders in the file tree", async ({ page }) => {
+  await page.goto("/#/chapter/13/rq13-steps");
+
+  const srcFolder = page.getByRole("button", { name: "src folder" });
+  await expect(srcFolder).toHaveAttribute("aria-expanded", "true");
+  await expect(page.getByRole("button", { name: "App.js" })).toBeVisible();
+
+  await srcFolder.click();
+  await expect(srcFolder).toHaveAttribute("aria-expanded", "false");
+  await expect(page.getByRole("button", { name: "App.js" })).toHaveCount(0);
+
+  await srcFolder.click();
+  await expect(srcFolder).toHaveAttribute("aria-expanded", "true");
+  await expect(page.getByRole("button", { name: "App.js" })).toBeVisible();
+});
+
+test("scrolls long file trees independently", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 650 });
+  await page.goto("/#/chapter/13/rq13-steps");
+
+  const fileTree = page.locator(".file-tree");
+  await expect(fileTree).toBeVisible();
+  await expect.poll(() => fileTree.evaluate(
+    (element) => element.scrollHeight > element.clientHeight,
+  )).toBe(true);
+
+  await fileTree.evaluate((element) => element.scrollTo({ top: element.scrollHeight }));
+  await expect.poll(() => fileTree.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+  await expect(page.locator(".source-path")).toBeVisible();
+});
+
 test("renders representative standalone and asset-heavy sections", async ({ page }) => {
   const examples = [
     { path: "/#/chapter/1/hello-world", text: "Hello world!!!", images: false },

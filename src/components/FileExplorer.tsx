@@ -1,10 +1,11 @@
-import type { CSSProperties, ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import { useSandpack } from "@codesandbox/sandpack-react";
 import type { TutorialSection } from "../content/types";
-import { FolderIcon, TreeChevron } from "./icons";
+import { FolderIcon, SidebarIcon, TreeChevron } from "./icons";
 
 interface FileExplorerProps {
   section: TutorialSection;
+  onCollapse: () => void;
 }
 
 function fileMeta(path: string) {
@@ -36,19 +37,43 @@ function buildTree(paths: string[]): TreeNode {
   return root;
 }
 
-function FolderRow({ name, depth }: { name: string; depth: number }) {
+interface FolderRowProps {
+  name: string;
+  depth: number;
+  collapsed: boolean;
+  onToggle: () => void;
+}
+
+function FolderRow({ name, depth, collapsed, onToggle }: FolderRowProps) {
   return (
-    <div className="folder-row" style={{ "--tree-depth": depth } as CSSProperties}>
+    <button
+      className={`folder-row ${collapsed ? "collapsed" : ""}`}
+      type="button"
+      style={{ "--tree-depth": depth } as CSSProperties}
+      aria-label={`${name} folder`}
+      aria-expanded={!collapsed}
+      onClick={onToggle}
+    >
       <TreeChevron className="chevron" />
       <FolderIcon className="folder-icon" />
       <span>{name}</span>
-    </div>
+    </button>
   );
 }
 
-export function FileExplorer({ section }: FileExplorerProps) {
+export function FileExplorer({ section, onCollapse }: FileExplorerProps) {
   const { sandpack } = useSandpack();
+  const [collapsedFolders, setCollapsedFolders] = useState<Set<string>>(() => new Set());
   const tree = buildTree(section.visibleFiles);
+
+  const toggleFolder = (path: string) => {
+    setCollapsedFolders((current) => {
+      const next = new Set(current);
+      if (next.has(path)) next.delete(path);
+      else next.add(path);
+      return next;
+    });
+  };
 
   const renderFile = (path: string, depth: number) => {
     const meta = fileMeta(path);
@@ -72,26 +97,54 @@ export function FileExplorer({ section }: FileExplorerProps) {
     );
   };
 
-  const renderTree = (node: TreeNode, depth: number): ReactNode => (
+  const renderTree = (node: TreeNode, depth: number, parentPath: string): ReactNode => (
     <>
       {node.files.sort().map((path) => renderFile(path, depth))}
       {[...node.folders.entries()]
         .sort(([left], [right]) => left.localeCompare(right))
-        .map(([name, child]) => (
-          <div className="tree-group" key={`${depth}-${name}`}>
-            <FolderRow name={name} depth={depth} />
-            {renderTree(child, depth + 1)}
-          </div>
-        ))}
+        .map(([name, child]) => {
+          const folderPath = `${parentPath}/${name}`;
+          const collapsed = collapsedFolders.has(folderPath);
+          return (
+            <div className="tree-group" key={folderPath}>
+              <FolderRow
+                name={name}
+                depth={depth}
+                collapsed={collapsed}
+                onToggle={() => toggleFolder(folderPath)}
+              />
+              {collapsed ? null : renderTree(child, depth + 1, folderPath)}
+            </div>
+          );
+        })}
     </>
   );
 
+  const rootPath = section.slug;
+  const rootCollapsed = collapsedFolders.has(rootPath);
+
   return (
     <aside className="file-explorer" aria-labelledby="filesHeading">
-      <div className="explorer-heading"><h2 id="filesHeading">Explorer</h2></div>
+      <div className="explorer-heading">
+        <h2 id="filesHeading">Explorer</h2>
+        <button
+          className="explorer-toggle"
+          type="button"
+          aria-label="Collapse Explorer"
+          title="Collapse Explorer"
+          onClick={onCollapse}
+        >
+          <SidebarIcon />
+        </button>
+      </div>
       <div className="file-tree">
-        <FolderRow name={section.slug} depth={0} />
-        {renderTree(tree, 1)}
+        <FolderRow
+          name={section.slug}
+          depth={0}
+          collapsed={rootCollapsed}
+          onToggle={() => toggleFolder(rootPath)}
+        />
+        {rootCollapsed ? null : renderTree(tree, 1, rootPath)}
       </div>
       <div className="source-path"><span>Source</span><code>{section.sourcePath}</code></div>
     </aside>

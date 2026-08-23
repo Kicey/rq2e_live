@@ -40,3 +40,12 @@ export function FolderIcon(props: IconProps) {
 export function TreeChevron(props: IconProps) {
   return <svg viewBox="0 0 16 16" aria-hidden="true" {...props}><path d="m5 3 5 5-5 5" /></svg>;
 }
+
+export function SidebarIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 18 18" aria-hidden="true" {...props}>
+      <rect x="2.5" y="3" width="13" height="12" rx="1.5" />
+      <path d="M7 3v12" />
+    </svg>
+  );
+}
