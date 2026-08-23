@@ -1,7 +1,9 @@
 {
   "name": "rq2e-live",
   "version": "0.1.0",
+  "description": "An interactive browser-based companion for the React Quickly, Second Edition examples.",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 4173",

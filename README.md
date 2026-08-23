@@ -1,6 +1,12 @@
 # React Quickly Live
 
-An interactive, browser-only tutorial companion for all 91 examples in the `rq2e` submodule. Every section uses the same resizable three-pane workspace:
+An interactive, browser-only tutorial companion for all 91 examples from the
+[`rq2e/rq2e`](https://github.com/rq2e/rq2e) repository. Those examples
+accompany *React Quickly, Second Edition* by Morten Barklund and Azat Mardan,
+published by Manning Publications, and are included here through the `rq2e`
+Git submodule.
+
+Every section uses the same resizable three-pane workspace:
 
 - a sandboxed React preview;
 - a multi-file explorer and CodeMirror editor powered by Sandpack;
@@ -49,3 +55,11 @@ The source globs require examples to be one directory below their chapter. This 
 ## Deploy
 
 The Pages workflow checks out the submodule, installs dependencies, builds `dist/`, and deploys it whenever `main` is pushed. In the repository, set **Settings → Pages → Build and deployment → Source** to **GitHub Actions** once.
+
+## License
+
+The original React Quickly Live tutorial shell is available under the
+[MIT License](LICENSE). The upstream examples and content in the `rq2e/`
+submodule are excluded from that license; see
+[Third-party notices](THIRD_PARTY_NOTICES.md) for attribution and licensing
+details.
