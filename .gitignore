@@ -5,3 +5,6 @@ coverage/
 playwright-report/
 test-results/
 *.tsbuildinfo
+/.book-work/
+__pycache__/
+*.py[cod]

@@ -22,6 +22,37 @@ describe("tutorial content registry", () => {
     expect(section.externalResources?.[0]).toMatch(/^data:text\/css/);
   });
 
+  it("presents Chapter 5 in teaching order with its authored lessons", async () => {
+    const teachingOrder = [
+      "rq05-functional-counter",
+      "rq05-triple-counter",
+      "rq05-accordion",
+      "rq05-calculator",
+      "rq05-reset-counter",
+      "rq05-bad-todo",
+      "rq05-proper-todo",
+      "rq05-filter-todo",
+      "rq05-nice-todo",
+    ];
+    const chapter = chapters.find((item) => item.number === 5);
+
+    expect(chapter?.sections.map((section) => section.slug)).toEqual(teachingOrder);
+
+    const loaded = await Promise.all(chapter!.sections.map(loadSection));
+    const internalLinks = loaded.flatMap((section, index) => {
+      expect(section.lesson).toContain(`example ${index + 1} of 9`);
+      expect(section.lesson).toContain("*Book context:");
+      expect(section.lesson).not.toContain("### What this section isolates");
+      return [...section.lesson.matchAll(/\]\(#\/chapter\/5\/([^)]+)\)/g)]
+        .map((match) => match[1]);
+    });
+
+    expect(internalLinks).toHaveLength(23);
+    for (const slug of internalLinks) {
+      expect(getSection("5", slug), slug).toBeDefined();
+    }
+  });
+
   it("loads the standalone first chapter through a hidden React adapter", async () => {
     const meta = getSection("1", "hello-world");
     const section = await loadSection(meta!);

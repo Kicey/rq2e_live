@@ -48,7 +48,8 @@ The Playwright suite verifies the catalog, standalone HTML, embedded PNG/SVG ass
 1. Add the example folder to the matching `rq2e/chXX` directory in the submodule.
 2. If it follows the existing `src`/`public` structure, the catalog discovers it automatically.
 3. Add an entry to `sectionOverrides` in `src/content/chapters.ts` only when it needs custom metadata.
-4. Import an authored Markdown lesson and select it in `loadSection` only when the generated chapter lesson is not sufficient.
+4. Import an authored Markdown lesson and add it to `authoredLessons` only when the generated chapter lesson is not sufficient.
+5. If a chapter has a deliberate teaching sequence that differs from slug order, add that sequence to `chapterSectionOrder`; unlisted chapters remain alphabetized.
 
 The source globs require examples to be one directory below their chapter. This keeps accidental files such as nested `node_modules` out of the tutorial build.
 

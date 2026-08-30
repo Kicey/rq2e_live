@@ -146,3 +146,93 @@ test("renders representative standalone and asset-heavy sections", async ({ page
     }
   }
 });
+
+test("renders the authored Chapter 5 sequence and runs every preview", async ({ page }) => {
+  const preview = page.frameLocator(".sandpack-preview iframe");
+  const openSection = async (slug: string, lessonHeading: string) => {
+    await page.goto(`/#/chapter/5/${slug}`);
+    await expect(page.locator(".lesson-explanation").getByRole("heading", {
+      name: lessonHeading,
+    })).toBeVisible();
+    await expect(page.getByText("Something went wrong", { exact: true })).toHaveCount(0);
+  };
+
+  await openSection("rq05-functional-counter", "Why this counter needs state");
+  const chapterFive = page.locator(".chooser-chapter").filter({
+    has: page.locator(".chooser-chapter-heading", { hasText: "05" }),
+  });
+  await expect(chapterFive.locator(".chooser-section small")).toHaveText([
+    "rq05-functional-counter",
+    "rq05-triple-counter",
+    "rq05-accordion",
+    "rq05-calculator",
+    "rq05-reset-counter",
+    "rq05-bad-todo",
+    "rq05-proper-todo",
+    "rq05-filter-todo",
+    "rq05-nice-todo",
+  ]);
+  await expect(preview.getByText("Counter: 0", { exact: true })).toBeVisible({ timeout: 30_000 });
+  await preview.getByRole("button", { name: "Increment" }).click();
+  await expect(preview.getByText("Counter: 1", { exact: true })).toBeVisible();
+
+  await page.locator(".lesson-explanation").getByRole("link", {
+    name: "rq05-triple-counter",
+  }).click();
+  await expect(page).toHaveURL(/#\/chapter\/5\/rq05-triple-counter$/);
+  await expect(page.getByRole("heading", { name: "One definition creates three stateful instances" })).toBeVisible();
+  await expect(preview.locator("p")).toHaveText(["Counter: 0", "Counter: 123", "Counter: -64"], {
+    timeout: 30_000,
+  });
+  await preview.getByRole("button", { name: "Increment" }).first().click();
+  await expect(preview.locator("p")).toHaveText(["Counter: 1", "Counter: 123", "Counter: -64"]);
+
+  await openSection("rq05-accordion", "Model a local interface choice");
+  await expect(preview.getByText("Password:")).toHaveCount(0);
+  await preview.getByRole("button", { name: "+" }).click();
+  await expect(preview.getByText("Password:")).toBeVisible({ timeout: 30_000 });
+  await preview.getByRole("button", { name: "-" }).click();
+  await expect(preview.getByText("Password:")).toHaveCount(0);
+
+  await openSection("rq05-calculator", "Treat the selected operator as data");
+  await expect(preview.locator("code")).toHaveText("11", { timeout: 30_000 });
+  await preview.getByRole("button", { name: "Minus" }).click();
+  await expect(preview.locator("code")).toHaveText("3");
+  await preview.getByRole("button", { name: "Multiply" }).click();
+  await expect(preview.locator("code")).toHaveText("28");
+
+  await openSection("rq05-reset-counter", "Compare the two next-state decisions");
+  await expect(preview.getByText("Counter: 0", { exact: true })).toBeVisible({ timeout: 30_000 });
+  await preview.getByRole("button", { name: "Increment" }).click();
+  await expect(preview.getByText("Counter: 1", { exact: true })).toBeVisible();
+  await preview.getByRole("button", { name: "Reset" }).click();
+  await expect(preview.getByText("Counter: 0", { exact: true })).toBeVisible();
+
+  await openSection("rq05-bad-todo", "Reproduce the failure first");
+  const badFirstTask = preview.locator("p").filter({ hasText: "Feed the plants" });
+  await expect(badFirstTask).toBeVisible({ timeout: 30_000 });
+  await badFirstTask.getByRole("button", { name: "x" }).click();
+  await expect(badFirstTask).toBeVisible();
+
+  await openSection("rq05-proper-todo", "Build a replacement without changing the old array");
+  const properFirstTask = preview.locator("p").filter({ hasText: "Feed the plants" });
+  await expect(properFirstTask).toBeVisible({ timeout: 30_000 });
+  await properFirstTask.getByRole("button", { name: "x" }).click();
+  await expect(properFirstTask).toHaveCount(0);
+
+  await openSection("rq05-filter-todo", "Keep independent concerns in separate states");
+  const filterFirstTask = preview.locator("p").filter({ hasText: "Feed the plants" });
+  await expect(filterFirstTask).toBeVisible({ timeout: 30_000 });
+  await filterFirstTask.getByRole("button", { name: "x" }).click();
+  await expect(filterFirstTask.locator("strike")).toHaveText("Feed the plants");
+  await preview.getByRole("button", { name: "Hide done" }).click();
+  await expect(filterFirstTask).toHaveCount(0);
+
+  await openSection("rq05-nice-todo", "Find the state owner");
+  const niceFirstTask = preview.locator("p").filter({ hasText: "Feed the plants" });
+  await expect(niceFirstTask).toBeVisible({ timeout: 30_000 });
+  await niceFirstTask.getByRole("button").click();
+  await expect(niceFirstTask.getByRole("button")).toHaveText("✓");
+  await preview.getByRole("button", { name: "Hide done" }).click();
+  await expect(niceFirstTask).toHaveCount(0);
+});

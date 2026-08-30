@@ -1,3 +1,12 @@
+import rq05AccordionLesson from "./ch05/rq05-accordion/lesson.md?raw";
+import rq05BadTodoLesson from "./ch05/rq05-bad-todo/lesson.md?raw";
+import rq05CalculatorLesson from "./ch05/rq05-calculator/lesson.md?raw";
+import rq05FilterTodoLesson from "./ch05/rq05-filter-todo/lesson.md?raw";
+import rq05FunctionalCounterLesson from "./ch05/rq05-functional-counter/lesson.md?raw";
+import rq05NiceTodoLesson from "./ch05/rq05-nice-todo/lesson.md?raw";
+import rq05ProperTodoLesson from "./ch05/rq05-proper-todo/lesson.md?raw";
+import rq05ResetCounterLesson from "./ch05/rq05-reset-counter/lesson.md?raw";
+import rq05TripleCounterLesson from "./ch05/rq05-triple-counter/lesson.md?raw";
 import rq13StepsLesson from "./ch13/rq13-steps/lesson.md?raw";
 import { buildLesson, chapterProfiles } from "./chapterProfiles";
 import type {
@@ -31,6 +40,31 @@ const standaloneLoaders = import.meta.glob<string>(
 
 const sectionPathPattern = /^\/rq2e\/ch(\d+)\/([^/]+)\//;
 const reactDependencies = { react: "18.2.0", "react-dom": "18.2.0" };
+const authoredLessons: Record<string, string> = {
+  "5/rq05-functional-counter": rq05FunctionalCounterLesson,
+  "5/rq05-triple-counter": rq05TripleCounterLesson,
+  "5/rq05-accordion": rq05AccordionLesson,
+  "5/rq05-calculator": rq05CalculatorLesson,
+  "5/rq05-reset-counter": rq05ResetCounterLesson,
+  "5/rq05-bad-todo": rq05BadTodoLesson,
+  "5/rq05-proper-todo": rq05ProperTodoLesson,
+  "5/rq05-filter-todo": rq05FilterTodoLesson,
+  "5/rq05-nice-todo": rq05NiceTodoLesson,
+  "13/rq13-steps": rq13StepsLesson,
+};
+const chapterSectionOrder: Partial<Record<number, readonly string[]>> = {
+  5: [
+    "rq05-functional-counter",
+    "rq05-triple-counter",
+    "rq05-accordion",
+    "rq05-calculator",
+    "rq05-reset-counter",
+    "rq05-bad-todo",
+    "rq05-proper-todo",
+    "rq05-filter-todo",
+    "rq05-nice-todo",
+  ],
+};
 const networkSections = new Set([
   "6/rq06-remote-dropdown",
   "8/rq08-video-player",
@@ -61,6 +95,19 @@ function parseSectionPath(path: string) {
 
 function sectionKey(chapter: number, slug: string): string {
   return `${chapter}/${slug}`;
+}
+
+function compareSections(left: TutorialSectionMeta, right: TutorialSectionMeta): number {
+  if (left.chapter !== right.chapter) return left.chapter - right.chapter;
+  const order = chapterSectionOrder[left.chapter];
+  if (!order) return left.slug.localeCompare(right.slug);
+
+  const leftIndex = order.indexOf(left.slug);
+  const rightIndex = order.indexOf(right.slug);
+  if (leftIndex === -1 && rightIndex === -1) return left.slug.localeCompare(right.slug);
+  if (leftIndex === -1) return 1;
+  if (rightIndex === -1) return -1;
+  return leftIndex - rightIndex;
 }
 
 function humanizeSlug(slug: string): string {
@@ -106,9 +153,7 @@ function discoverSections(): TutorialSectionMeta[] {
     if (!discovered.has(key)) discovered.set(key, createMeta(chapter, slug));
   }
 
-  return [...discovered.values()].sort(
-    (left, right) => left.chapter - right.chapter || left.slug.localeCompare(right.slug),
-  );
+  return [...discovered.values()].sort(compareSections);
 }
 
 export const sections: TutorialSectionMeta[] = discoverSections();
@@ -201,9 +246,8 @@ export async function loadSection(meta: TutorialSectionMeta): Promise<TutorialSe
     : visibleFiles[0] ?? meta.entryFile;
   const svgAssets = publicValues.filter(([path]) => path.endsWith(".svg"));
   const stylesheet = assetStylesheet(svgAssets, imageValues, publicPrefix);
-  let lesson = sectionKey(meta.chapter, meta.slug) === "13/rq13-steps"
-    ? rq13StepsLesson
-    : buildLesson(meta.chapter, meta.title, visibleFiles);
+  let lesson = authoredLessons[sectionKey(meta.chapter, meta.slug)]
+    ?? buildLesson(meta.chapter, meta.title, visibleFiles);
   if (meta.runtime === "network") {
     lesson += `\n\n### External resource note\n\nThis example requests data or media from a public service. Its component code remains fully editable, but the final result also depends on that service being reachable and allowing requests from the Sandpack preview.`;
   } else if (meta.runtime === "adapted") {
